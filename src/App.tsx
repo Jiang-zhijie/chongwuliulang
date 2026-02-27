@@ -423,12 +423,28 @@ export default function App() {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    fetch('/api/pets').then(res => res.json()).then(data => setPets(data));
-    fetch('/api/stories').then(res => res.json()).then(data => setStories(data));
-    fetch('/api/tips').then(res => res.json()).then(data => setTips(data));
-    fetch('/api/products').then(res => res.json()).then(data => setProducts(data));
-    fetch('/api/guides').then(res => res.json()).then(data => setGuides(data));
-    fetch('/api/partners').then(res => res.json()).then(data => setPartners(data));
+    const fetchData = async () => {
+      try {
+        const [petsRes, storiesRes, tipsRes, productsRes, guidesRes, partnersRes] = await Promise.all([
+          fetch('/api/pets'),
+          fetch('/api/stories'),
+          fetch('/api/tips'),
+          fetch('/api/products'),
+          fetch('/api/guides'),
+          fetch('/api/partners')
+        ]);
+
+        if (petsRes.ok) setPets(await petsRes.json());
+        if (storiesRes.ok) setStories(await storiesRes.json());
+        if (tipsRes.ok) setTips(await tipsRes.json());
+        if (productsRes.ok) setProducts(await productsRes.json());
+        if (guidesRes.ok) setGuides(await guidesRes.json());
+        if (partnersRes.ok) setPartners(await partnersRes.json());
+      } catch (err) {
+        console.error("Failed to fetch data:", err);
+      }
+    };
+    fetchData();
   }, []);
 
   const filteredPets = filter === 'all' ? pets : pets.filter(p => p.type === filter);

@@ -7,7 +7,15 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const db = new Database("pets.db");
+const dbPath = process.env.VERCEL ? "/tmp/pets.db" : path.join(__dirname, "pets.db");
+let db: Database.Database;
+
+try {
+  db = new Database(dbPath);
+} catch (err) {
+  console.error("Failed to open database, falling back to in-memory:", err);
+  db = new Database(":memory:");
+}
 
 // Initialize database
 db.exec(`
@@ -49,13 +57,22 @@ db.exec(`
     description TEXT,
     website TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS applications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pet_id INTEGER,
+    applicant_name TEXT,
+    email TEXT,
+    phone TEXT,
+    message TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 // Seed data if empty or using old URLs
 const petCount = db.prepare("SELECT COUNT(*) as count FROM pets").get() as { count: number };
 const hasOldUrls = db.prepare("SELECT COUNT(*) as count FROM pets WHERE image_url LIKE '%picsum.photos%'").get() as { count: number };
 if (petCount.count < 18 || hasOldUrls.count > 0) {
-  // Clear existing to avoid duplicates if partially seeded or using old URLs
   db.prepare("DELETE FROM pets").run();
   const insert = db.prepare(`
     INSERT INTO pets (name, type, breed, age, gender, description, image_url)
@@ -69,8 +86,6 @@ if (petCount.count < 18 || hasOldUrls.count > 0) {
   insert.run("小白", "猫", "波斯猫", "2岁", "母", "高冷优雅，喜欢安静的环境。", "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=800");
   insert.run("黑米", "狗", "拉布拉多", "1.5岁", "公", "聪明好学，适合作为导盲犬培养。", "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&q=80&w=800");
   insert.run("汤姆", "猫", "英短蓝猫", "3岁", "公", "胖乎乎的，非常懒散，喜欢睡觉。", "https://images.unsplash.com/photo-1513245538231-15454f746438?auto=format&fit=crop&q=80&w=800");
-  
-  // Adding 10 more
   insert.run("可乐", "狗", "柯基", "1岁", "公", "腿短志气大，性格开朗，是大家的开心果。", "https://images.unsplash.com/photo-1513284499445-5da23aa25bc0?auto=format&fit=crop&q=80&w=800");
   insert.run("芝麻", "猫", "英短金渐层", "2岁", "母", "性格安静，喜欢晒太阳，非常温顺。", "https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&q=80&w=800");
   insert.run("大白", "狗", "大白熊犬", "3岁", "公", "体型巨大但内心温柔，是个可靠的守护者。", "https://images.unsplash.com/photo-1520560321666-4b36560e79f9?auto=format&fit=crop&q=80&w=800");
@@ -147,77 +162,77 @@ if (tipCount.count === 0 || tipOldUrls.count > 0) {
   insert.run("健康护理", "宠物驱虫的重要性", "定期驱虫可以预防多种疾病，保护宠物健康...", "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&q=80&w=800");
 }
 
-async function startServer() {
-  const app = express();
-  app.use(express.json());
-  const PORT = 3000;
+const app = express();
+app.use(express.json());
 
-  // API Routes
-  app.get("/api/pets", (req, res) => {
-    const pets = db.prepare("SELECT * FROM pets WHERE status = 'available' ORDER BY created_at DESC").all();
-    res.json(pets);
-  });
+// API Routes
+app.get("/api/pets", (req, res) => {
+  const pets = db.prepare("SELECT * FROM pets WHERE status = 'available' ORDER BY created_at DESC").all();
+  res.json(pets);
+});
 
-  app.get("/api/stories", (req, res) => {
-    const stories = db.prepare("SELECT * FROM stories ORDER BY created_at DESC").all();
-    res.json(stories);
-  });
+app.get("/api/stories", (req, res) => {
+  const stories = db.prepare("SELECT * FROM stories ORDER BY created_at DESC").all();
+  res.json(stories);
+});
 
-  app.get("/api/tips", (req, res) => {
-    const tips = db.prepare("SELECT * FROM tips ORDER BY created_at DESC").all();
-    res.json(tips);
-  });
+app.get("/api/tips", (req, res) => {
+  const tips = db.prepare("SELECT * FROM tips ORDER BY created_at DESC").all();
+  res.json(tips);
+});
 
-  app.get("/api/products", (req, res) => {
-    const products = db.prepare("SELECT * FROM products ORDER BY created_at DESC").all();
-    res.json(products);
-  });
+app.get("/api/products", (req, res) => {
+  const products = db.prepare("SELECT * FROM products ORDER BY created_at DESC").all();
+  res.json(products);
+});
 
-  app.get("/api/guides", (req, res) => {
-    const guides = db.prepare("SELECT * FROM guides ORDER BY order_num ASC").all();
-    res.json(guides);
-  });
+app.get("/api/guides", (req, res) => {
+  const guides = db.prepare("SELECT * FROM guides ORDER BY order_num ASC").all();
+  res.json(guides);
+});
 
-  app.get("/api/partners", (req, res) => {
-    const partners = db.prepare("SELECT * FROM partners ORDER BY id ASC").all();
-    res.json(partners);
-  });
+app.get("/api/partners", (req, res) => {
+  const partners = db.prepare("SELECT * FROM partners ORDER BY id ASC").all();
+  res.json(partners);
+});
 
-  app.get("/api/pets/:id", (req, res) => {
-    const pet = db.prepare("SELECT * FROM pets WHERE id = ?").get(req.params.id);
-    if (pet) {
-      res.json(pet);
-    } else {
-      res.status(404).json({ error: "Pet not found" });
-    }
-  });
-
-  app.post("/api/applications", (req, res) => {
-    const { pet_id, applicant_name, email, phone, message } = req.body;
-    const info = db.prepare(`
-      INSERT INTO applications (pet_id, applicant_name, email, phone, message)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(pet_id, applicant_name, email, phone, message);
-    res.json({ id: info.lastInsertRowid });
-  });
-
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
+app.get("/api/pets/:id", (req, res) => {
+  const pet = db.prepare("SELECT * FROM pets WHERE id = ?").get(req.params.id);
+  if (pet) {
+    res.json(pet);
   } else {
-    app.use(express.static(path.join(__dirname, "dist")));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(__dirname, "dist", "index.html"));
-    });
+    res.status(404).json({ error: "Pet not found" });
   }
+});
 
+app.post("/api/applications", (req, res) => {
+  const { pet_id, applicant_name, email, phone, message } = req.body;
+  const info = db.prepare(`
+    INSERT INTO applications (pet_id, applicant_name, email, phone, message)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(pet_id, applicant_name, email, phone, message);
+  res.json({ id: info.lastInsertRowid });
+});
+
+// Vite middleware for development
+if (process.env.NODE_ENV !== "production") {
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: "spa",
+  });
+  app.use(vite.middlewares);
+} else {
+  app.use(express.static(path.join(__dirname, "dist")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "dist", "index.html"));
+  });
+}
+
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  const PORT = 3000;
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 
-startServer();
+export default app;
