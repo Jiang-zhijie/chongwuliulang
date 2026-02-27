@@ -51,10 +51,11 @@ db.exec(`
   );
 `);
 
-// Seed data if empty
+// Seed data if empty or using old URLs
 const petCount = db.prepare("SELECT COUNT(*) as count FROM pets").get() as { count: number };
-if (petCount.count < 18) {
-  // Clear existing to avoid duplicates if partially seeded
+const hasOldUrls = db.prepare("SELECT COUNT(*) as count FROM pets WHERE image_url LIKE '%picsum.photos%'").get() as { count: number };
+if (petCount.count < 18 || hasOldUrls.count > 0) {
+  // Clear existing to avoid duplicates if partially seeded or using old URLs
   db.prepare("DELETE FROM pets").run();
   const insert = db.prepare(`
     INSERT INTO pets (name, type, breed, age, gender, description, image_url)
@@ -83,26 +84,30 @@ if (petCount.count < 18) {
 }
 
 const partnerCount = db.prepare("SELECT COUNT(*) as count FROM partners").get() as { count: number };
-if (partnerCount.count === 0) {
+const partnerOldUrls = db.prepare("SELECT COUNT(*) as count FROM partners WHERE logo_url LIKE '%picsum.photos%'").get() as { count: number };
+if (partnerCount.count === 0 || partnerOldUrls.count > 0) {
+  db.prepare("DELETE FROM partners").run();
   const insert = db.prepare(`
     INSERT INTO partners (name, logo_url, description, website)
     VALUES (?, ?, ?, ?)
   `);
-  insert.run("爱宠宠物医院", "https://picsum.photos/seed/hosp/200/200", "提供专业的医疗支持与绿色通道。", "https://example.com");
-  insert.run("萌宠食品有限公司", "https://picsum.photos/seed/food/200/200", "长期捐赠高品质宠物粮食。", "https://example.com");
-  insert.run("温暖社区基金会", "https://picsum.photos/seed/fund/200/200", "提供救助资金支持与社区宣传。", "https://example.com");
+  insert.run("爱宠宠物医院", "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&q=80&w=200", "提供专业的医疗支持与绿色通道。", "https://example.com");
+  insert.run("萌宠食品有限公司", "https://images.unsplash.com/photo-1589923188900-85dae523342b?auto=format&fit=crop&q=80&w=200", "长期捐赠高品质宠物粮食。", "https://example.com");
+  insert.run("温暖社区基金会", "https://images.unsplash.com/photo-1532629345422-7515f3d16bb8?auto=format&fit=crop&q=80&w=200", "提供救助资金支持与社区宣传。", "https://example.com");
 }
 
 const productCount = db.prepare("SELECT COUNT(*) as count FROM products").get() as { count: number };
-if (productCount.count === 0) {
+const productOldUrls = db.prepare("SELECT COUNT(*) as count FROM products WHERE image_url LIKE '%picsum.photos%'").get() as { count: number };
+if (productCount.count === 0 || productOldUrls.count > 0) {
+  db.prepare("DELETE FROM products").run();
   const insert = db.prepare(`
     INSERT INTO products (name, price, description, image_url, category)
     VALUES (?, ?, ?, ?, ?)
   `);
-  insert.run("公益帆布袋", 39.0, "印有救助中心Logo的环保帆布袋，所得款项全额用于宠物医疗。", "https://picsum.photos/seed/bag/800/600", "生活用品");
-  insert.run("定制宠物项圈", 25.0, "手工编织的宠物项圈，舒适耐用。", "https://picsum.photos/seed/collar/800/600", "宠物用品");
-  insert.run("爱心明信片套装", 15.0, "一套12张，记录了救助中心宠物的感人瞬间。", "https://picsum.photos/seed/card/800/600", "文创周边");
-  insert.run("宠物陶瓷碗", 45.0, "高品质陶瓷，防滑设计，呵护宠物颈椎。", "https://picsum.photos/seed/bowl/800/600", "宠物用品");
+  insert.run("公益帆布袋", 39.0, "印有救助中心Logo的环保帆布袋，所得款项全额用于宠物医疗。", "https://images.unsplash.com/photo-1544816153-16ad461465c8?auto=format&fit=crop&q=80&w=800", "生活用品");
+  insert.run("定制宠物项圈", 25.0, "手工编织的宠物项圈，舒适耐用。", "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&q=80&w=800", "宠物用品");
+  insert.run("爱心明信片套装", 15.0, "一套12张，记录了救助中心宠物的感人瞬间。", "https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?auto=format&fit=crop&q=80&w=800", "文创周边");
+  insert.run("宠物陶瓷碗", 45.0, "高品质陶瓷，防滑设计，呵护宠物颈椎。", "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80&w=800", "宠物用品");
 }
 
 const guideCount = db.prepare("SELECT COUNT(*) as count FROM guides").get() as { count: number };
@@ -118,24 +123,28 @@ if (guideCount.count === 0) {
 }
 
 const storyCount = db.prepare("SELECT COUNT(*) as count FROM stories").get() as { count: number };
-if (storyCount.count === 0) {
+const storyOldUrls = db.prepare("SELECT COUNT(*) as count FROM stories WHERE image_url LIKE '%picsum.photos%'").get() as { count: number };
+if (storyCount.count === 0 || storyOldUrls.count > 0) {
+  db.prepare("DELETE FROM stories").run();
   const insert = db.prepare(`
     INSERT INTO stories (title, content, pet_name, image_url)
     VALUES (?, ?, ?, ?)
   `);
-  insert.run("豆豆的新家", "张女士领养了豆豆后，家里充满了欢声笑语。豆豆现在每天都会陪张女士散步。", "豆豆", "https://picsum.photos/seed/story1/800/600");
-  insert.run("咪咪的幸福生活", "咪咪被一个温馨的家庭领养了，现在它有了一个漂亮的小窝和很多玩具。", "咪咪", "https://picsum.photos/seed/story2/800/600");
+  insert.run("豆豆的新家", "张女士领养了豆豆后，家里充满了欢声笑语。豆豆现在每天都会陪张女士散步。", "豆豆", "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=800");
+  insert.run("咪咪的幸福生活", "咪咪被一个温馨的家庭领养了，现在它有了一个漂亮的小窝和很多玩具。", "咪咪", "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&q=80&w=800");
 }
 
 const tipCount = db.prepare("SELECT COUNT(*) as count FROM tips").get() as { count: number };
-if (tipCount.count === 0) {
+const tipOldUrls = db.prepare("SELECT COUNT(*) as count FROM tips WHERE image_url LIKE '%picsum.photos%'").get() as { count: number };
+if (tipCount.count === 0 || tipOldUrls.count > 0) {
+  db.prepare("DELETE FROM tips").run();
   const insert = db.prepare(`
     INSERT INTO tips (category, title, content, image_url)
     VALUES (?, ?, ?, ?)
   `);
-  insert.run("养狗知识", "如何给狗狗洗澡", "洗澡前要准备好专用的沐浴露，水温要适中...", "https://picsum.photos/seed/tip1/800/600");
-  insert.run("养猫知识", "猫咪的饮食禁忌", "猫咪不能吃巧克力、洋葱等食物...", "https://picsum.photos/seed/tip2/800/600");
-  insert.run("健康护理", "宠物驱虫的重要性", "定期驱虫可以预防多种疾病，保护宠物健康...", "https://picsum.photos/seed/tip3/800/600");
+  insert.run("养狗知识", "如何给狗狗洗澡", "洗澡前要准备好专用的沐浴露，水温要适中...", "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&q=80&w=800");
+  insert.run("养猫知识", "猫咪的饮食禁忌", "猫咪不能吃巧克力、洋葱等食物...", "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=800");
+  insert.run("健康护理", "宠物驱虫的重要性", "定期驱虫可以预防多种疾病，保护宠物健康...", "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&q=80&w=800");
 }
 
 async function startServer() {
