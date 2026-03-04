@@ -28,12 +28,22 @@ export interface Guide {
   order_num: number;
 }
 
+export interface Comment {
+  id: number;
+  user_name: string;
+  content: string;
+  created_at: string;
+}
+
 export interface Story {
   id: number;
   title: string;
   content: string;
   pet_name: string;
   image_url: string;
+  category?: string;
+  created_at?: string;
+  comments?: Comment[];
 }
 
 export interface Tip {
@@ -51,6 +61,30 @@ export interface Partner {
   description: string;
   website: string;
 }
+
+export interface Layout {
+  heroTitle: string;
+  heroSubtitle: string;
+  heroImage: string;
+  aboutTitle: string;
+  aboutContent: string;
+  contactAddress: string;
+  contactPhone: string;
+  contactEmail: string;
+  openingHours: string;
+}
+
+export const layout: Layout = {
+  heroTitle: "守护生命",
+  heroSubtitle: "流浪动物救助中心致力于为每一只流浪宠物寻找最温暖的归宿。在这里，爱心不仅是拯救，更是陪伴的开始。",
+  heroImage: "https://images.unsplash.com/photo-1450778869180-41d0601e046e?auto=format&fit=crop&q=80&w=2000",
+  aboutTitle: "关于我们",
+  aboutContent: "流浪动物救助中心成立于 2020 年，是一个由志愿者发起的非营利性宠物救助组织。我们的使命是减少流浪动物的数量，并为每一只受难的生命提供医疗、庇护和寻找新家的机会。",
+  contactAddress: "北京市朝阳区爱心路 88 号",
+  contactPhone: "400-123-4567",
+  contactEmail: "rescue@doghelp.com",
+  openingHours: "周二至周日 9:00-17:00 (周一休息)"
+};
 
 export const pets: Pet[] = [
   {
@@ -340,17 +374,57 @@ export const guides: Guide[] = [
 export const stories: Story[] = [
   {
     id: 1,
-    title: "豆豆的新家",
-    content: "张女士领养了豆豆后，家里充满了欢声笑语。豆豆现在每天都会陪张女士散步。",
-    pet_name: "豆豆",
-    image_url: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=800"
+    title: "成功救助受伤流浪狗\"小勇\"",
+    content: "昨日，我们接到市民举报，在城东发现一只受伤的流浪狗。经过紧急救治，小勇已经脱离高危险，正在康复中。感谢热心市民的及时救助！",
+    pet_name: "小勇",
+    image_url: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=800",
+    category: "救助动态",
+    created_at: "2024-03-15"
   },
   {
     id: 2,
-    title: "咪咪的幸福生活",
-    content: "咪咪被一个温馨的家庭领养了，现在它有了一个漂亮的小窝和很多玩具。",
-    pet_name: "咪咪",
-    image_url: "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&q=80&w=800"
+    title: "温馨家庭成功领养金毛\"阳光\"",
+    content: "经过一个月的申请和评估流程，张先生一家成功领养了金毛犬阳光。看到阳光在新家庭中快乐的样子，我们由衷地感到高兴。",
+    pet_name: "阳光",
+    image_url: "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&q=80&w=800",
+    category: "领养成功",
+    created_at: "2024-03-12"
+  },
+  {
+    id: 3,
+    title: "周末志愿者活动圆满结束",
+    content: "本周末的志愿者活动吸引了50多名爱心人士参与，大家一起为流浪狗清洗犬舍、准备食物，还有专业兽医为狗狗们进行健康检查。",
+    pet_name: "多只狗狗",
+    image_url: "https://images.unsplash.com/photo-1544816153-16ad461465c8?auto=format&fit=crop&q=80&w=800",
+    category: "志愿活动",
+    created_at: "2024-03-10"
+  },
+  {
+    id: 4,
+    title: "收容所设施升级改造完成",
+    content: "经过两个月的改造，我们的收容所设施得到了全面升级。新增了医疗室、隔离区和活动场地，为流浪狗们提供更好的生活环境。",
+    pet_name: "收容所",
+    image_url: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80&w=800",
+    category: "救助动态",
+    created_at: "2024-03-08"
+  },
+  {
+    id: 5,
+    title: "爱心企业捐赠价值万元物资",
+    content: "本地知名宠物用品公司向我们捐赠了价值一万元的狗粮、医疗用品和清洁用品。这些物资将大大改善流浪狗们的生活条件。",
+    pet_name: "全体狗狗",
+    image_url: "https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?auto=format&fit=crop&q=80&w=800",
+    category: "救助动态",
+    created_at: "2024-03-05"
+  },
+  {
+    id: 6,
+    title: "小型犬\"豆豆\"找到新家",
+    content: "可爱的比熊犬豆豆经过两个月的等待，终于找到了理想的家庭。新主人是一对年轻夫妇，他们承诺会给豆豆最好的照顾。",
+    pet_name: "豆豆",
+    image_url: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&q=80&w=800",
+    category: "领养成功",
+    created_at: "2024-03-03"
   }
 ];
 
